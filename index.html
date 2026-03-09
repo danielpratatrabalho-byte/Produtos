@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Lista de Produtos</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        padding: 20px;
+    }
+    .product {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fff;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: background-color 0.3s;
+    }
+    .product.done {
+        background-color: #d4edda;
+        text-decoration: line-through;
+        color: #155724;
+    }
+    button, .mark-btn, .delete-btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        margin-left: 5px;
+        transition: background-color 0.3s;
+    }
+    button {
+        background-color: #007bff;
+        color: #fff;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    .mark-btn {
+        background-color: #ccc;
+        color: #fff;
+    }
+    .mark-btn.done {
+        background-color: #28a745;
+    }
+    .delete-btn {
+        background-color: #dc3545;
+        color: #fff;
+    }
+    .delete-btn:hover {
+        background-color: #a71d2a;
+    }
+    #addProductContainer {
+        margin-bottom: 20px;
+    }
+    input[type=text] {
+        padding: 5px;
+        width: 200px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+</style>
+</head>
+<body>
+<h2>Produtos</h2>
+<div id="addProductContainer">
+    <input type="text" id="newProduct" placeholder="Adicionar produto">
+    <button id="addBtn">Adicionar</button>
+</div>
+<div id="productList"></div>
+
+<script>
+// Inicializar produtos a partir do localStorage ou padrão
+let products = JSON.parse(localStorage.getItem('products')) || [
+  {code: "GADGET0514", done: false},
+  {code: "DIVE0666", done: false},
+  {code: "MESAGM056", done: false},
+  {code: "MOCH0067", done: false},
+  {code: "MOCH0077", done: false},
+  {code: "MOCH0078", done: false},
+  {code: "MOCH0079", done: false},
+  {code: "GADGET0881", done: false},
+  {code: "DIVE1112", done: false}
+];
+
+const productList = document.getElementById('productList');
+
+function saveProducts() {
+    localStorage.setItem('products', JSON.stringify(products));
+}
+
+function renderProducts() {
+    productList.innerHTML = '';
+    products.forEach((item, index) => addProduct(item, index));
+}
+
+function addProduct(item, index) {
+    const div = document.createElement('div');
+    div.className = 'product';
+    if(item.done) div.classList.add('done');
+
+    const span = document.createElement('span');
+    span.textContent = item.code;
+
+    const copyBtn = document.createElement('button');
+    copyBtn.textContent = 'Copiar';
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(item.code).then(() => {
+            div.classList.add('done');
+            markBtn.classList.add('done');
+            item.done = true;
+            saveProducts();
+        });
+    });
+
+    const markBtn = document.createElement('button');
+    markBtn.className = 'mark-btn';
+    markBtn.textContent = item.done ? '✓' : 'X';
+    if(item.done) markBtn.classList.add('done');
+    markBtn.addEventListener('click', () => {
+        item.done = !item.done;
+        div.classList.toggle('done');
+        markBtn.classList.toggle('done');
+        markBtn.textContent = item.done ? '✓' : 'X';
+        saveProducts();
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.textContent = '🗑';
+    deleteBtn.addEventListener('click', () => {
+        if(confirm(`Tem certeza que deseja remover o produto ${item.code}?`)) {
+            products.splice(index, 1);
+            saveProducts();
+            renderProducts();
+        }
+    });
+
+    div.appendChild(span);
+    div.appendChild(copyBtn);
+    div.appendChild(markBtn);
+    div.appendChild(deleteBtn);
+    productList.appendChild(div);
+}
+
+// Adicionar produto novo
+document.getElementById('addBtn').addEventListener('click', () => {
+    const newProd = document.getElementById('newProduct').value.trim();
+    if(newProd) {
+        products.push({code: newProd, done: false});
+        saveProducts();
+        renderProducts();
+        document.getElementById('newProduct').value = '';
+    }
+});
+
+renderProducts();
+</script>
+</body>
+</html>
