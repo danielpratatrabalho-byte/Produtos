@@ -3,162 +3,579 @@
 <head>
 <meta charset="UTF-8">
 <title>Lista de Produtos</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        padding: 20px;
-    }
-    .product {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: #fff;
-        padding: 10px 15px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        transition: background-color 0.3s;
-    }
-    .product.done {
-        background-color: #d4edda;
-        text-decoration: line-through;
-        color: #155724;
-    }
-    button, .mark-btn, .delete-btn {
-        padding: 5px 10px;
-        border: none;
-        border-radius: 3px;
-        cursor: pointer;
-        margin-left: 5px;
-        transition: background-color 0.3s;
-    }
-    button {
-        background-color: #007bff;
-        color: #fff;
-    }
-    button:hover {
-        background-color: #0056b3;
-    }
-    .mark-btn {
-        background-color: #ccc;
-        color: #fff;
-    }
-    .mark-btn.done {
-        background-color: #28a745;
-    }
-    .delete-btn {
-        background-color: #dc3545;
-        color: #fff;
-    }
-    .delete-btn:hover {
-        background-color: #a71d2a;
-    }
-    #addProductContainer {
-        margin-bottom: 20px;
-    }
-    input[type=text] {
-        padding: 5px;
-        width: 200px;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-    }
+:root {
+  --bg: #0f0f11;
+  --surface: #1a1a1f;
+  --surface2: #242429;
+  --border: #2e2e36;
+  --accent: #fd7e14;
+  --accent2: #ff9a45;
+  --green: #28a745;
+  --red: #dc3545;
+  --text: #e8e8f0;
+  --text2: #8888a0;
+  --done-bg: #151518;
+  --done-text: #4a9a5a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* SIDEBAR */
+#sidebar {
+  position: fixed; top: 0; left: 0;
+  width: 260px; height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100;
+  transition: transform 0.3s ease;
+}
+#sidebar-header { padding: 20px 16px 12px; border-bottom: 1px solid var(--border); }
+#sidebar-header h1 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--accent); letter-spacing: 0.05em; text-transform: uppercase; }
+#sidebar-header p { font-size: 0.65rem; color: var(--text2); margin-top: 2px; }
+#themes-list { flex: 1; overflow-y: auto; padding: 10px 8px; }
+.theme-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+  margin-bottom: 4px; transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.theme-item:hover { background: var(--surface2); }
+.theme-item.active { background: var(--surface2); border-color: var(--accent); }
+.theme-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.theme-name { font-size: 0.8rem; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.theme-count { font-size: 0.65rem; color: var(--text2); background: var(--bg); padding: 2px 6px; border-radius: 20px; }
+.theme-delete-btn { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 0.75rem; padding: 2px 4px; border-radius: 4px; opacity: 0; transition: opacity 0.15s; }
+.theme-item:hover .theme-delete-btn { opacity: 1; }
+.theme-delete-btn:hover { color: var(--red); }
+#sidebar-footer { padding: 12px 8px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+#new-theme-input {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+  padding: 8px 10px; border-radius: 6px; width: 100%; outline: none; transition: border-color 0.15s;
+}
+#new-theme-input:focus { border-color: var(--accent); }
+#new-theme-input::placeholder { color: var(--text2); }
+.sidebar-btn {
+  background: var(--accent); color: white; border: none;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700;
+  padding: 8px; border-radius: 6px; cursor: pointer; width: 100%; transition: background 0.15s;
+}
+.sidebar-btn:hover { background: var(--accent2); }
+.sidebar-btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.sidebar-btn.secondary:hover { border-color: var(--accent); color: var(--accent); background: var(--surface2); }
+
+/* MAIN */
+#main { margin-left: 260px; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* TOPBAR */
+#topbar {
+  position: sticky; top: 0; background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px; display: flex; align-items: center;
+  gap: 12px; flex-wrap: wrap; z-index: 50;
+}
+#current-theme-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800; color: var(--accent); flex: 1; min-width: 120px; }
+.topbar-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#newProduct {
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+  padding: 8px 12px; border-radius: 6px; width: 200px; outline: none; transition: border-color 0.15s;
+}
+#newProduct:focus { border-color: var(--accent); }
+#newProduct::placeholder { color: var(--text2); }
+.top-btn {
+  background: var(--accent); color: white; border: none;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 700;
+  padding: 8px 14px; border-radius: 6px; cursor: pointer; transition: background 0.15s; white-space: nowrap;
+}
+.top-btn:hover { background: var(--accent2); }
+.top-btn.ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.top-btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.top-btn.danger { background: var(--surface); color: var(--red); border: 1px solid var(--border); }
+.top-btn.danger:hover { background: var(--red); color: white; }
+.toggle-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text2); }
+.toggle-switch { width: 40px; height: 22px; background: var(--surface2); border-radius: 20px; position: relative; cursor: pointer; border: 1px solid var(--border); transition: background 0.2s; }
+.toggle-switch.on { background: var(--accent); border-color: var(--accent); }
+.toggle-knob { position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.2s; }
+.toggle-switch.on .toggle-knob { transform: translateX(18px); }
+#statsBox { background: var(--surface); border: 1px solid var(--border); color: var(--text2); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; white-space: nowrap; }
+#statsBox span { color: var(--accent); font-weight: 700; }
+
+/* PRODUCTS */
+#productList { padding: 16px 24px; flex: 1; }
+.product {
+  display: flex; align-items: center; background: #6c757d;
+  padding: 11px 14px; margin-bottom: 8px; border-radius: 8px;
+  border-bottom: 3px solid var(--accent); gap: 12px; transition: all 0.15s;
+  animation: fadeIn 0.18s ease;
+}
+@keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+.product:hover { background: #7a848d; }
+.product.done { background: #4f5b66; border-bottom-color: var(--green); opacity: 0.7; }
+.product-code { flex: 1; font-size: 0.88rem; font-weight: 600; letter-spacing: 0.02em; }
+.product.done .product-code { text-decoration: line-through; color: var(--done-text); }
+.product-btns { display: flex; gap: 6px; }
+.p-btn { padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700; transition: all 0.12s; }
+.copy-btn { background: var(--accent); color: white; }
+.copy-btn:hover { background: var(--accent2); }
+.copy-btn.copied { background: var(--green); }
+.mark-btn { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+.mark-btn:hover { border-color: var(--green); color: var(--green); }
+.mark-btn.done { background: var(--green); color: white; border-color: var(--green); }
+.del-btn { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+.del-btn:hover { background: var(--red); color: white; border-color: var(--red); }
+
+/* MODALS */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 400px; max-width: 95vw; }
+.modal h2 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--accent); margin-bottom: 16px; }
+.modal p { font-size: 0.78rem; color: var(--text2); margin-bottom: 12px; line-height: 1.5; }
+.modal-input { background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 10px 12px; border-radius: 6px; width: 100%; outline: none; margin-bottom: 12px; transition: border-color 0.15s; }
+.modal-input:focus { border-color: var(--accent); }
+.modal-id-box { background: var(--bg); border: 1px solid var(--accent); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; padding: 12px; border-radius: 6px; text-align: center; word-break: break-all; margin-bottom: 12px; cursor: pointer; transition: background 0.15s; }
+.modal-id-box:hover { background: rgba(253,126,20,0.1); }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.modal-btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 700; transition: all 0.15s; }
+.modal-btn.primary { background: var(--accent); color: white; }
+.modal-btn.primary:hover { background: var(--accent2); }
+.modal-btn.cancel { background: var(--surface2); color: var(--text2); }
+.modal-btn.cancel:hover { color: var(--text); }
+
+/* NO THEME */
+#noTheme { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: var(--text2); padding: 60px; text-align: center; }
+#noTheme .big { font-size: 3rem; margin-bottom: 16px; }
+#noTheme h2 { font-family: 'Syne', sans-serif; font-size: 1.3rem; color: var(--text); margin-bottom: 8px; }
+#noTheme p { font-size: 0.8rem; line-height: 1.6; max-width: 300px; }
+
+/* NOTIF */
+#notif { position: fixed; bottom: 20px; right: 20px; background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--green); color: var(--text); padding: 10px 16px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; z-index: 999; transform: translateX(130%); transition: transform 0.3s ease; }
+#notif.show { transform: translateX(0); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* MOBILE */
+#menu-toggle { display: none; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 1.1rem; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+@media (max-width: 680px) {
+  #sidebar { transform: translateX(-260px); }
+  #sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.5); }
+  #main { margin-left: 0; }
+  #topbar { padding: 10px 14px; }
+  #productList { padding: 12px 14px; }
+  #menu-toggle { display: block; }
+}
 </style>
 </head>
 <body>
-<h2>Produtos</h2>
-<div id="addProductContainer">
-    <input type="text" id="newProduct" placeholder="Adicionar produto">
-    <button id="addBtn">Adicionar</button>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>📦 Produtos</h1>
+    <p>Gestão por temas</p>
+  </div>
+  <div id="themes-list"></div>
+  <div id="sidebar-footer">
+    <input type="text" id="new-theme-input" placeholder="Nome do novo tema..." maxlength="40">
+    <button class="sidebar-btn" id="createThemeBtn">+ Criar Tema</button>
+    <button class="sidebar-btn secondary" id="shareBtn">⬆ Partilhar Tema Ativo</button>
+    <button class="sidebar-btn secondary" id="importBtn">⬇ Importar Tema (ID)</button>
+  </div>
 </div>
-<div id="productList"></div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <button id="menu-toggle">☰</button>
+    <div id="current-theme-title">—</div>
+    <div class="topbar-group">
+      <input type="text" id="newProduct" placeholder="Adicionar produto...">
+      <button class="top-btn" id="addBtn">Adicionar</button>
+    </div>
+    <div class="topbar-group">
+      <button class="top-btn ghost" id="undoBtn">⬅ Desfazer</button>
+      <button class="top-btn ghost" id="redoBtn">Refazer ➡</button>
+      <button class="top-btn danger" id="clearAllBtn">Apagar tudo</button>
+    </div>
+    <div class="toggle-wrap">
+      <div class="toggle-switch" id="autoToggle"><div class="toggle-knob"></div></div>
+      <span>Auto-marcar</span>
+    </div>
+    <div id="statsBox">Feitos: <span id="statsDone">0</span>/<span id="statsTotal">0</span></div>
+  </div>
+
+  <div id="noTheme">
+    <div class="big">🗂</div>
+    <h2>Nenhum tema selecionado</h2>
+    <p>Seleciona um tema na barra lateral ou cria um novo para começar.</p>
+  </div>
+
+  <div id="productList" style="display:none"></div>
+</div>
+
+<!-- MODAL: Share -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <h2>⬆ Partilhar Tema</h2>
+    <p>Clica no ID abaixo para copiar. Envia-o ao teu colega para ele importar o tema.</p>
+    <div class="modal-id-box" id="shareIdBox" title="Clica para copiar">—</div>
+    <p id="shareStatus" style="min-height:18px; color:var(--green);"></p>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" id="shareClose">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Import -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <h2>⬇ Importar Tema</h2>
+    <p>Cola o ID que o teu colega te enviou:</p>
+    <input type="text" class="modal-input" id="importIdInput" placeholder="Cola o ID aqui...">
+    <p id="importStatus" style="min-height:18px; color:var(--red);"></p>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" id="importClose">Cancelar</button>
+      <button class="modal-btn primary" id="importConfirm">Importar</button>
+    </div>
+  </div>
+</div>
+
+<div id="notif"></div>
 
 <script>
-// Inicializar produtos a partir do localStorage ou padrão
-let products = JSON.parse(localStorage.getItem('products')) || [
-  {code: "GADGET0514", done: false},
-  {code: "DIVE0666", done: false},
-  {code: "MESAGM056", done: false},
-  {code: "MOCH0067", done: false},
-  {code: "MOCH0077", done: false},
-  {code: "MOCH0078", done: false},
-  {code: "MOCH0079", done: false},
-  {code: "GADGET0881", done: false},
-  {code: "DIVE1112", done: false}
-];
+// ── STORAGE ──
+const LS_INDEX = 'themes_index_v2';
+const LS_THEME = id => 'theme_data_v2_' + id;
+const LS_AUTO  = 'autoMark_v2';
 
-const productList = document.getElementById('productList');
+let themes = {};
+let activeThemeId = null;
+let autoMark = false;
+let undoHistory = [];
+let redoStack = [];
 
-function saveProducts() {
-    localStorage.setItem('products', JSON.stringify(products));
+// ── DEFAULT PRODUCTS ──
+const DEFAULT_PRODUCTS = ["GADGET0514","DIVE0666","MESAGM056","MOCH0067","MOCH0077","MOCH0078","MOCH0079","GADGET0881","DIVE1112","DIVE1229","DIVE1190","SUPOR560","GADGET0671","GADGET0630","GADGET0632","CAMIP202","GADGET0578","MOBIL052","GADGET0568","DIVE0873","DIVE0724","DIVE0675","GADGET0427","DIVE0350","ADAPT061","ADAPT018","ADAPT069","CAMD694","DIVE1312","DIVE0948","DIVE0864","DIVE0751","DIVE1255","DIVE1257","DIVE1253","DIVE1260","DIVE1252","DIVE1262","DIVE1258","DIVE1250","DIVE1261","DIVE1254","DIVE0847","DIVE0845","DIVE0808","DIVE0949","DIVE0844","COLU0688","COLU0694","COLU0695","DIVE0614","DIVE0520","DIVE0521","SUPOR452","SUPOR478","SUPOR430","SUPOR429","SUPOR223","SUPOR161","SUPOR118","SUPOR506","SUPOR351","SUPOR331","SUPOR150","SUPOR181","SUPOR134","SUPOR367","SUPOR234","SUPOR419","SUPOR092","SUPOR058","SUPOR439","SUPOR124","SUPOR422","SUPOR269","SUPOR059","SUPOR495","SUPOR220","SUPOR344","SUPOR348","SUPOR332","SUPOR123","SUPOR494","SUPOR477","SUPOR436","SUPOR423","SUPOR426","SUPOR424","SUPOR427","SUPOR420","SUPOR425","SUPOR413","SUPOR346","SUPOR347","SUPOR334","SUPOR333","SUPOR317","SUPOR316","SUPOR318","SUPOR278","SUPOR275","SUPOR250","SUPOR266","SUPOR242","SUPOR235","SUPOR232","SUPOR224","SUPOR237","SUPOR238","SUPOR239","SUPOR226","SUPOR229","SUPOR240","SUPOR218","SUPOR208","SUPOR195","SUPOR158","SUPOR096","SUPOR090","SUPOR088","SUPOR094","SUPOR095","SUPOR083","SUPOR093","SUPOR076","SUPOR082","ACEJ0661","ACEJ0652","CARRE480","CARRE396","ACEJ1085","ACEJ1084","ACEJ0558","ACEJ0711","ACEJ0914","ACEJ0710","ACEJ0530","ACEJ0700","ACEJ0670","ACEJ1088","ACEJ1120","ACEJ0682","ACEJ0678","GAV024","BATERIA155","BATERIA154","UPS0587","UPS0305","UPS0451","UPS0421","UPS0378","UPS0591","UPS0518","UPS0406","UPS0400","UPS0304","UPS0255","BATERIA002","BATERIA162","UPS0460","UPS0360","UPS0259","UPS0419","UPS0529","UPS0466","UPS0453","ACREDE261","UPS0319","UPS0386","UPS0385","UPS0384","UPS0298","UPS0299","UPS0382","UPS0381","UPS0413","UPS0346","BATERIA001","UPS0598","UPS0578","UPS0565","UPS0553","UPS0562","UPS0520","UPS0521","UPS0531","UPS0515","UPS0528","UPS0530","UPS0524","UPS0525","UPS0532","UPS0533","UPS0516","UPS0522","UPS0523","BATERIA024","UPS0493","UPS0473","UPS0475","UPS0459","UPS0454","UPS0457","UPS0452","UPS0425","UPS0431","UPS0427","UPS0436","UPS0426","UPS0438","UPS0434","UPS0437","UPS0433","UPS0429","UPS0428","UPS0432","UPS0423","UPS0422","UPS0412","UPS0411","UPS0403","UPS0405","UPS0394","UPS0396","UPS0402","UPS0397","UPS0401","UPS0404","UPS0392","UPS0395","UPS0373","UPS0367","UPS0354","UPS0352","UPS0353","UPS0347","UPS0343","UPS0344","UPS0345","UPS0342","UPS0329","UPS0340","UPS0320","UPS0318","UPS0316","UPS0311","UPS0303","UPS0308","UPS0307","UPS0295","UPS0285","UPS0291","MPAD471","MPAD470","MPAD433","MPAD369","MPAD468","MPAD390","MPAD324","MPAD448","MPAD500","MPAD449","MPAD450","MPAD520","MPAD458","MPAD539","MPAD540","MPAD453","MPAD546","MPAD341","MPAD547","MPAD532","MPAD537","MPAD530","MPAD531","MPAD505","MPAD455","MPAD484","MPAD428","MPAD238","MPAD346","MPAD395","MPAD578","MPAD345","MPAD396","MPAD514","MPAD511","CABO0437","CABO1731","CABO1698","CABO1490","CABO1491","CABO1489","CABO1487","CABO1712","CABO0724","CABO1144","CABO1238","CABO1226","CABO1214","CABO0912","CABO0813","CABO0668","CABO0718","CABO1016","CABO0823","CABO1580","CABO1445","CABO1476","CABO1473","CABO1472","CABO1474","CABO1477","CABO1475","CABO1013","CABO1015","CABO1014","CABO1456","CABO1457","CABO1458","CABO0812","CABO0723","CABO0673","CABO0872","CABO0828","CABO0796","CABO0665","CABO1471","CABO1465","CABO1449","CABO1469","CABO1468","CABO1467","CABO1466","CABO1460","CABO1461","CABO1462","CABO1463","CABO1459","CABO1464","CABO1454","CABO1453","CABO1470","CABO1450","CABO1451","CABO1452","CABO0678","CABO1222","CABO1041","CABO1047","CABO1572","CABO0803","CABO0769","CABO0693","CABO0690","CABO1064","CABO1063","CABO0933","CABO1168","CABO1156","CABO0799","CABO0787","CABO1428","CABO1229","CABO1213","CABO1295","CABO1332","CABO1350","CABO1338","CABO1312","CABO1198","CABO1317","CABO1289","CABO1196","CABO1197","CABO1199","CABO1200","CABO1201","CABO1202","CABO1203","CABO1046","CABO1043","CABO1040","CABO0932","CABO0357","CABO0319","CABO0320","CABO0281","CABO1071","CABO1236","CABO1225","AK5021","CABO1155","CABO0705","CABO1062","CABO1060","CABO0971","CABO1379","CABO0969","CABO0855","CABO1036","CABO1039","CABO1042","CABO1045","CABO1083","CABO1082","CABO0972","CABO0905","CABO1140","CABO1089","CABO0129","ADAPT133","ADAPT026","ADAPT129","CABO1298","CABO1300","CABO0893","CABO0853","CABO1485","CABO1151","CABO0441","CABO1269","CABO1149","CABO1128","CABO1113","CABO1112","CABO1110","CABO1399","CABO1398","CABO1397","CABO0992","CABO0770","ACES1215","CABO0662","CABO1416","CABO1422","CABO1417","CABO1421","CABO1420","CABO1418","CABO1419","CABO1352","CABO0903","CABO1044","CABO1035","CABO1032","CABO0943","CABO0945","CABO0941","CABO0940","CABO0939","CABO0938","CABO0937","ADAPT114","ADAPT077","CABO1385","CABO1235","CABO1165","CABO1119","CABO1075","CABO0973","CABO0936","CABO0660","CABO1318","CABO1349","CABO1292","CABO0530","CABO1309","CABO1353","CABO1322","CABO1315","CABO1303","CABO1351","CABO1345","CABO1339","CABO1297","CABO1286","CABO1616","CABO1336","CABO1330","CABO1348","CABO1316","CABO1310","CABO1304","CABO1288","CABO1287","CABO1081","CABO1061","CABO1034","CABO0944","CABO1223","CABO1079","CABO0642","CABO0430","CABO0661","CABO0891","CABO0669","CABO1735","CABO0998","CABO0996","CABO0995","CABO0862","CABO0860","CABO0858","CABO0859","ADAPT049","ADAPT059","CABO1120","CABO1139","CABO1455","CABO1411","CABO1415","CABO1410","CABO1414","CABO1413","CABO1409","CABO1185","CABO1479","CABO1444","CABO1478","CABO1191","CABO1190","CABO1189","CABO1188","CABO1187","CABO1186","CABO1184","CABO1183","CABO1153","CABO1204","CABO1169","CABO1154","CABO1072","CABO0967","CABO1138","CABO1068","CABO1162","CABO1163","CABO1161","CABO1160","CABO1065","CABO1066","CABO1038","CABO0867","CABO0868","CABO0866","CABO0864","CABO1012","CABO1148","CABO1076","CABO0504","CABO1206","CABO1392","CABO0801","CABO1118","CABO0920","CABO1557","CABO1164","CABO0754","CABO0917","CABO0916","CABO0755","CABO1408","CABO0722","CABO0667","CABO0349","CABO0743","CABO0202","CABO0316","CABO0201","CABO0124","CABO0172","CABO0570","CABO0970","CABO0742","CABO0409","REDE0069","CABO1109","CABO0404","CABO0276","CABO1152","CABO1037","CABO1033","CABO0736","CABO0918","CABO0605","CABO0411","CABO0364","CABO0659","CABO1073","CABO1074","CABO0913","CABO1181","CABO1176","CABO1175","CABO1174","CABO0741","CABO0697","CABO0696","CABO0989","CABO0990","CABO0986","CABO0987","CABO0985","CABO0611","CABO0984","CABO0982","CABO0981","CABO0432","CABO1448","CABO0317","CABO0278","CABO1623","CABO1290","CABO1291","CABO1302","CABO1334","CABO1346","CABO1299","CABO1321","CABO1729","CABO1730","CABO0085","CABO0266","ADAPT053","CABO0279","CABO0716","CABO0442","CABO1634","ADAPT020","CABO0717","CABO1133","CABO0706","CABO1493","ADAPT111","ADAPT099","CABO1127","CABO0925","CABO0721","CABO0875","CABO0275","CABO0273","ADAPT128","ADAPT054","ACES1127","CABO1143","CABO0444","CABO1147","ADAPT112","CABO1624","CABO1618","ADAPT103","CABO0274","CABO0991","CABO1620","CABO1625","CABO1621","CABO1622","CABO1627","CABO1111","CABO1619","ADAPT151","CABO0606","CABO0575","ADAPT150","CABO1114","CABO1125","CABO0436","CABO0780","ADAPT110","CABO0964","CABO1048","CABO0963","CABO0870","CABO0956","CABO1209","CABO0435","CABO0961","CABO0959","CABO0952","CABO0949","CABO0737","CABO0954","CABO0946","CABO1031","CABO0950","CABO1107","CABO0720","CABO01060","CABO1117","CABO1116","CABO0960","CABO0857","CABO0738","CABO0847","CABO1018","CABO0856","ADAPT083","CABO0958","CABO0951","CABO0948","CABO1403","CABO0865","CABO0739","CABO1129","CABO1108","CABO0921","CABO0651","CABO0861","ACES1012","CABO0733","CABO0934","CABO0494","CABO0431","CABO0291","ADAPT090","CABO0410","IB02625","CABO0928","CABO0957","CABO0825","CABO0826","CABO0824","CABO0633","CABO0505","CABO0495","CABO0423","CABO0240"];
+
+// ── HELPERS ──
+function genId() { return Math.random().toString(36).substr(2,9); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── LOAD ──
+function loadAll() {
+  try {
+    const ids = JSON.parse(localStorage.getItem(LS_INDEX) || '[]');
+    ids.forEach(id => {
+      const d = localStorage.getItem(LS_THEME(id));
+      if (d) themes[id] = JSON.parse(d);
+    });
+  } catch(e) {}
+
+  if (Object.keys(themes).length === 0) {
+    const id1 = genId(), id2 = genId();
+    themes[id1] = { name: 'Mudar descrição', products: DEFAULT_PRODUCTS.map(c => ({code:c, done:false})) };
+    themes[id2] = { name: 'Produtos que falta o aviso', products: [] };
+    persistIndex();
+    saveTheme(id1); saveTheme(id2);
+  }
+  autoMark = JSON.parse(localStorage.getItem(LS_AUTO) || 'false');
+  updateAutoToggle();
 }
 
-function renderProducts() {
-    productList.innerHTML = '';
-    products.forEach((item, index) => addProduct(item, index));
+function persistIndex() {
+  localStorage.setItem(LS_INDEX, JSON.stringify(Object.keys(themes)));
 }
 
-function addProduct(item, index) {
+function saveTheme(id) {
+  localStorage.setItem(LS_THEME(id), JSON.stringify(themes[id]));
+  persistIndex();
+}
+
+// ── SIDEBAR ──
+function renderSidebar() {
+  const list = document.getElementById('themes-list');
+  list.innerHTML = '';
+  Object.entries(themes).forEach(([id, theme]) => {
+    const done = theme.products.filter(p=>p.done).length;
+    const total = theme.products.length;
     const div = document.createElement('div');
-    div.className = 'product';
-    if(item.done) div.classList.add('done');
-
-    const span = document.createElement('span');
-    span.textContent = item.code;
-
-    const copyBtn = document.createElement('button');
-    copyBtn.textContent = 'Copiar';
-    copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(item.code).then(() => {
-            div.classList.add('done');
-            markBtn.classList.add('done');
-            item.done = true;
-            saveProducts();
-        });
+    div.className = 'theme-item' + (id === activeThemeId ? ' active' : '');
+    div.innerHTML = `
+      <div class="theme-dot"></div>
+      <div class="theme-name">${esc(theme.name)}</div>
+      <div class="theme-count">${done}/${total}</div>
+      <button class="theme-delete-btn" title="Eliminar">✕</button>`;
+    div.addEventListener('click', e => {
+      if (e.target.classList.contains('theme-delete-btn')) return;
+      selectTheme(id);
+      // close on mobile
+      document.getElementById('sidebar').classList.remove('open');
     });
-
-    const markBtn = document.createElement('button');
-    markBtn.className = 'mark-btn';
-    markBtn.textContent = item.done ? '✓' : 'X';
-    if(item.done) markBtn.classList.add('done');
-    markBtn.addEventListener('click', () => {
-        item.done = !item.done;
-        div.classList.toggle('done');
-        markBtn.classList.toggle('done');
-        markBtn.textContent = item.done ? '✓' : 'X';
-        saveProducts();
+    div.querySelector('.theme-delete-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm(`Eliminar tema "${theme.name}"?`)) return;
+      localStorage.removeItem(LS_THEME(id));
+      delete themes[id];
+      persistIndex();
+      if (activeThemeId === id) { activeThemeId = null; showNoTheme(); }
+      renderSidebar();
     });
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.textContent = '🗑';
-    deleteBtn.addEventListener('click', () => {
-        if(confirm(`Tem certeza que deseja remover o produto ${item.code}?`)) {
-            products.splice(index, 1);
-            saveProducts();
-            renderProducts();
-        }
-    });
-
-    div.appendChild(span);
-    div.appendChild(copyBtn);
-    div.appendChild(markBtn);
-    div.appendChild(deleteBtn);
-    productList.appendChild(div);
+    list.appendChild(div);
+  });
 }
 
-// Adicionar produto novo
+function showNoTheme() {
+  document.getElementById('noTheme').style.display = 'flex';
+  document.getElementById('productList').style.display = 'none';
+  document.getElementById('current-theme-title').textContent = '—';
+}
+
+// ── SELECT THEME ──
+function selectTheme(id) {
+  activeThemeId = id;
+  undoHistory = []; redoStack = [];
+  document.getElementById('noTheme').style.display = 'none';
+  document.getElementById('productList').style.display = 'block';
+  document.getElementById('current-theme-title').textContent = themes[id].name;
+  renderSidebar();
+  renderProducts();
+}
+
+// ── CREATE THEME ──
+document.getElementById('createThemeBtn').addEventListener('click', () => {
+  const inp = document.getElementById('new-theme-input');
+  const name = inp.value.trim();
+  if (!name) return;
+  const id = genId();
+  themes[id] = { name, products: [] };
+  saveTheme(id);
+  inp.value = '';
+  renderSidebar();
+  selectTheme(id);
+  notify('Tema criado: ' + name);
+});
+document.getElementById('new-theme-input').addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('createThemeBtn').click(); });
+
+// ── RENDER PRODUCTS ──
+function renderProducts() {
+  if (!activeThemeId) return;
+  const list = document.getElementById('productList');
+  const theme = themes[activeThemeId];
+  list.innerHTML = '';
+
+  if (theme.products.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text2);">
+      <div style="font-size:2rem;margin-bottom:12px;">📭</div>
+      <p style="font-size:0.85rem;line-height:1.6;">Nenhum produto neste tema.<br>Adiciona um acima!</p></div>`;
+    updateStats(); return;
+  }
+
+  theme.products.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'product' + (item.done ? ' done' : '');
+
+    const code = document.createElement('div');
+    code.className = 'product-code';
+    code.textContent = item.code;
+
+    const btns = document.createElement('div');
+    btns.className = 'product-btns';
+
+    // Copy
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'p-btn copy-btn';
+    copyBtn.textContent = 'Copiar';
+    copyBtn.onclick = () => {
+      pushUndo();
+      navigator.clipboard.writeText(item.code).catch(()=>{});
+      copyBtn.textContent = '✓'; copyBtn.classList.add('copied');
+      setTimeout(() => { copyBtn.textContent = 'Copiar'; copyBtn.classList.remove('copied'); }, 1200);
+      if (autoMark && !item.done) {
+        item.done = true;
+        saveTheme(activeThemeId);
+        renderProducts(); renderSidebar();
+      }
+    };
+
+    // Mark
+    const markBtn = document.createElement('button');
+    markBtn.className = 'p-btn mark-btn' + (item.done ? ' done' : '');
+    markBtn.textContent = item.done ? '✓' : '○';
+    markBtn.onclick = () => {
+      pushUndo();
+      item.done = !item.done;
+      saveTheme(activeThemeId);
+      renderProducts(); renderSidebar();
+    };
+
+    // Delete
+    const delBtn = document.createElement('button');
+    delBtn.className = 'p-btn del-btn';
+    delBtn.textContent = '✕';
+    delBtn.onclick = () => {
+      if (!confirm(`Remover ${item.code}?`)) return;
+      pushUndo();
+      theme.products.splice(index, 1);
+      saveTheme(activeThemeId);
+      renderProducts(); renderSidebar();
+    };
+
+    btns.append(copyBtn, markBtn, delBtn);
+    div.append(code, btns);
+    list.appendChild(div);
+  });
+  updateStats();
+}
+
+function updateStats() {
+  if (!activeThemeId) return;
+  const t = themes[activeThemeId];
+  const done = t.products.filter(p=>p.done).length;
+  document.getElementById('statsDone').textContent = done;
+  document.getElementById('statsTotal').textContent = t.products.length;
+}
+
+// ── ADD PRODUCT ──
 document.getElementById('addBtn').addEventListener('click', () => {
-    const newProd = document.getElementById('newProduct').value.trim();
-    if(newProd) {
-        products.push({code: newProd, done: false});
-        saveProducts();
-        renderProducts();
-        document.getElementById('newProduct').value = '';
-    }
+  if (!activeThemeId) { notify('Seleciona um tema primeiro!', true); return; }
+  const inp = document.getElementById('newProduct');
+  const val = inp.value.trim();
+  if (!val) return;
+  pushUndo();
+  themes[activeThemeId].products.push({ code: val, done: false });
+  saveTheme(activeThemeId);
+  inp.value = '';
+  renderProducts(); renderSidebar();
+});
+document.getElementById('newProduct').addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('addBtn').click(); });
+
+// ── CLEAR ALL ──
+document.getElementById('clearAllBtn').addEventListener('click', () => {
+  if (!activeThemeId) return;
+  if (!confirm('Apagar TODOS os produtos deste tema?')) return;
+  if (!confirm('Confirmas?')) return;
+  pushUndo();
+  themes[activeThemeId].products = [];
+  saveTheme(activeThemeId);
+  renderProducts(); renderSidebar();
 });
 
-renderProducts();
+// ── UNDO / REDO ──
+function pushUndo() {
+  if (!activeThemeId) return;
+  undoHistory.push(JSON.stringify(themes[activeThemeId].products));
+  if (undoHistory.length > 50) undoHistory.shift();
+  redoStack = [];
+}
+
+document.getElementById('undoBtn').addEventListener('click', () => {
+  if (!activeThemeId || undoHistory.length === 0) return;
+  redoStack.push(JSON.stringify(themes[activeThemeId].products));
+  themes[activeThemeId].products = JSON.parse(undoHistory.pop());
+  saveTheme(activeThemeId); renderProducts(); renderSidebar();
+});
+
+document.getElementById('redoBtn').addEventListener('click', () => {
+  if (!activeThemeId || redoStack.length === 0) return;
+  undoHistory.push(JSON.stringify(themes[activeThemeId].products));
+  themes[activeThemeId].products = JSON.parse(redoStack.pop());
+  saveTheme(activeThemeId); renderProducts(); renderSidebar();
+});
+
+// ── AUTO MARK ──
+document.getElementById('autoToggle').addEventListener('click', () => {
+  autoMark = !autoMark;
+  localStorage.setItem(LS_AUTO, JSON.stringify(autoMark));
+  updateAutoToggle();
+});
+function updateAutoToggle() {
+  document.getElementById('autoToggle').classList.toggle('on', autoMark);
+}
+
+// ── SHARE ──
+// Encode the entire theme as base64 into a self-contained token (no server needed)
+document.getElementById('shareBtn').addEventListener('click', () => {
+  if (!activeThemeId) { notify('Seleciona um tema primeiro!', true); return; }
+  const theme = themes[activeThemeId];
+  const payload = JSON.stringify({ name: theme.name, products: theme.products });
+  const token = 'SH1_' + btoa(unescape(encodeURIComponent(payload)));
+  document.getElementById('shareIdBox').textContent = token;
+  document.getElementById('shareStatus').textContent = '';
+  document.getElementById('shareModal').classList.add('open');
+});
+
+document.getElementById('shareIdBox').addEventListener('click', () => {
+  const txt = document.getElementById('shareIdBox').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    document.getElementById('shareStatus').textContent = '✓ Copiado!';
+  });
+});
+
+document.getElementById('shareClose').addEventListener('click', () => {
+  document.getElementById('shareModal').classList.remove('open');
+});
+
+// ── IMPORT ──
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importIdInput').value = '';
+  document.getElementById('importStatus').textContent = '';
+  document.getElementById('importModal').classList.add('open');
+});
+document.getElementById('importClose').addEventListener('click', () => {
+  document.getElementById('importModal').classList.remove('open');
+});
+document.getElementById('importConfirm').addEventListener('click', () => {
+  const token = document.getElementById('importIdInput').value.trim();
+  const statusEl = document.getElementById('importStatus');
+  statusEl.textContent = '';
+  if (!token) { statusEl.textContent = 'Cola um ID válido.'; return; }
+  try {
+    if (!token.startsWith('SH1_')) throw new Error('Formato inválido');
+    const encoded = token.slice(4);
+    const decoded = decodeURIComponent(escape(atob(encoded)));
+    const data = JSON.parse(decoded);
+    if (!data.name || !Array.isArray(data.products)) throw new Error('Dados inválidos');
+
+    // Reset done status on import (fresh start for colleague)
+    const prods = data.products.map(p => ({ code: p.code, done: false }));
+    const exists = Object.values(themes).some(t => t.name === data.name);
+    const newName = exists ? data.name + ' (importado)' : data.name;
+    const newId = genId();
+    themes[newId] = { name: newName, products: prods };
+    saveTheme(newId);
+    renderSidebar();
+    selectTheme(newId);
+    document.getElementById('importModal').classList.remove('open');
+    notify('Tema importado: ' + newName);
+  } catch(e) {
+    statusEl.textContent = '❌ ID inválido ou corrompido. Tenta novamente.';
+  }
+});
+
+// ── MOBILE ──
+document.getElementById('menu-toggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+// ── NOTIFY ──
+function notify(msg, isError=false) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.style.borderLeftColor = isError ? 'var(--red)' : 'var(--green)';
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2500);
+}
+
+// ── INIT ──
+loadAll();
+renderSidebar();
+const firstId = Object.keys(themes)[0];
+if (firstId) selectTheme(firstId);
 </script>
 </body>
 </html>
